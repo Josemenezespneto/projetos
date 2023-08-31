@@ -1,5 +1,11 @@
 package com.picpaysimplificado.repositories;
 
-public interface TransacaoRepositorio {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.picpaysimplificado.models.Transacao;
+
+public interface TransacaoRepositorio extends JpaRepository<Transacao, Long>{
+
+
 
 }

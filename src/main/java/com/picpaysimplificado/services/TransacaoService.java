@@ -28,7 +28,10 @@ public class TransacaoService {
     @Autowired
     public RestTemplate restTemplate;
 
-    public void criarTransacao(TransacaoDTO transacao ) throws Exception{
+    @Autowired
+    private NotificacaoServices notificacaoServices;
+
+    public Transacao criarTransacao(TransacaoDTO transacao ) throws Exception{
         Usuario remetente = this.usuarioServices.findUsuarioById(transacao.remetenteId());
         Usuario recebedor = this.usuarioServices.findUsuarioById(transacao.recebedorId());
 
@@ -39,24 +42,29 @@ public class TransacaoService {
             throw new Exception("Transação não Autorizada");
         }
     
-        Transacao novTransacao = new Transacao();
-        novTransacao.setValor(novTransacao.getValor());
-        novTransacao.setRemetente(remetente);
-        novTransacao.setRecebedor(recebedor);
-        novTransacao.setHoraDaTransacao(LocalDateTime.now());
+        Transacao novaTransacao = new Transacao();
+        novaTransacao.setValor(novaTransacao.getValor());
+        novaTransacao.setRemetente(remetente);
+        novaTransacao.setRecebedor(recebedor);
+        novaTransacao.setHoraDaTransacao(LocalDateTime.now());
 
         remetente.setSaldo(remetente.getSaldo().subtract(transacao.valor()));
         recebedor.setSaldo(recebedor.getSaldo().add(transacao.valor()));
 
-        this.repositorio.save(novTransacao);
+        this.repositorio.save(novaTransacao);
         this.usuarioServices.salvarUsuario(recebedor);
         this.usuarioServices.salvarUsuario(recebedor);
+
+        this.notificacaoServices.enviarNotificacao(remetente, "Transação realizada com sucesso.");
+        this.notificacaoServices.enviarNotificacao(recebedor, "Transação realizada com sucesso.");
+
+        return novaTransacao;
     }
     public boolean autorizacaoDeTransacao (Usuario remetente, BigDecimal valor){
         ResponseEntity<Map> autoririzacaoResposta = restTemplate.getForEntity("https://run.mocky.io/v3/8fafdd68-a090-496f-8c9a-3442cf30dae6",Map.class);
         
         if (autoririzacaoResposta.getStatusCode() == HttpStatus.OK ) {
-            String mensagem = (String) autoririzacaoResposta.getBody().get("mensagem");
+            String mensagem = (String)autoririzacaoResposta.getBody().get("mensagem");
             return "Autorizado".equalsIgnoreCase(mensagem);
         } else return false;
     }
