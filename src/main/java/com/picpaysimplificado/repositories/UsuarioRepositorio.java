@@ -9,5 +9,5 @@ import com.picpaysimplificado.models.Usuario;
 public interface UsuarioRepositorio extends JpaRepository <Usuario, Long>{
     Optional<Usuario> findUsuarioByCpf (String cpf);
 
-    
+    Optional<Usuario> findUsuarioById (Long id);
 }
